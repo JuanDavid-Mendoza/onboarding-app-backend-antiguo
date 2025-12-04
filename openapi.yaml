@@ -1,0 +1,988 @@
+openapi: 3.0.3
+info:
+  title: Onboarding App Backend API
+  description: |
+    API para gestión de onboardings de empleados del Banco de Bogotá.
+    
+    Esta API permite:
+    - Autenticación de usuarios
+    - Gestión de usuarios
+    - Gestión de programas de onboarding
+    - Asignación de usuarios a onboardings
+    - Notificaciones por correo electrónico
+  version: 1.0.0
+  contact:
+    name: Banco de Bogotá
+
+servers:
+  - url: http://localhost:3030
+    description: Servidor de desarrollo
+
+tags:
+  - name: Auth
+    description: Autenticación y autorización
+  - name: Users
+    description: Gestión de usuarios
+  - name: Onboardings
+    description: Gestión de programas de onboarding
+  - name: User Onboardings
+    description: Asignación de usuarios a onboardings
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenido del endpoint de login
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Ocurrió un error inesperado"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "juandavid@bancodebogota.com"
+        password:
+          type: string
+          format: password
+          example: "Password123"
+
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role_id
+      properties:
+        name:
+          type: string
+          example: "Juan David Mendoza Vargas"
+        email:
+          type: string
+          format: email
+          example: "juandavid@bancodebogota.com"
+        password:
+          type: string
+          format: password
+          example: "Password123"
+        role_id:
+          type: integer
+          example: 2
+          description: "1 = Admin, 2 = Usuario"
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+            name:
+              type: string
+            role_id:
+              type: integer
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Juan David Mendoza Vargas"
+        email:
+          type: string
+          format: email
+          example: "juandavid@bancodebogota.com"
+        role_id:
+          type: integer
+          example: 2
+        role_name:
+          type: string
+          example: "Usuario"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role_id
+      properties:
+        name:
+          type: string
+          example: "Juan David Mendoza"
+        email:
+          type: string
+          format: email
+          example: "juan@bancodebogota.com"
+        password:
+          type: string
+          format: password
+          example: "Password123"
+        role_id:
+          type: integer
+          example: 2
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Juan David Mendoza Vargas"
+        email:
+          type: string
+          format: email
+          example: "juan@bancodebogota.com"
+        password:
+          type: string
+          format: password
+          example: "NewPassword123"
+        role_id:
+          type: integer
+          example: 2
+
+    Onboarding:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Onboarding Cloud"
+        description:
+          type: string
+          example: "Programa de capacitación en tecnologías cloud"
+        start_date:
+          type: string
+          format: date
+          example: "2025-12-02"
+        end_date:
+          type: string
+          format: date
+          example: "2025-12-09"
+        color:
+          type: string
+          example: "#0052CC"
+        onboarding_type_id:
+          type: integer
+          example: 1
+        onboarding_type:
+          type: string
+          example: "Onboarding Técnico"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateOnboardingRequest:
+      type: object
+      required:
+        - name
+        - description
+        - start_date
+        - end_date
+        - onboarding_type_id
+      properties:
+        name:
+          type: string
+          example: "Onboarding Cloud"
+        description:
+          type: string
+          example: "Programa de capacitación en tecnologías cloud"
+        start_date:
+          type: string
+          format: date
+          example: "2025-12-02"
+        end_date:
+          type: string
+          format: date
+          example: "2025-12-09"
+        color:
+          type: string
+          example: "#0052CC"
+        onboarding_type_id:
+          type: integer
+          example: 1
+
+    UserOnboarding:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 2
+        onboarding_id:
+          type: integer
+          example: 1
+        state:
+          type: integer
+          example: 0
+          description: "0 = En progreso, 1 = Completado"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AssignUserOnboardingRequest:
+      type: object
+      required:
+        - user_id
+        - onboarding_id
+      properties:
+        user_id:
+          type: integer
+          example: 2
+        onboarding_id:
+          type: integer
+          example: 1
+        state:
+          type: integer
+          example: 0
+          description: "0 = En progreso, 1 = Completado"
+
+    UpdateUserOnboardingRequest:
+      type: object
+      properties:
+        state:
+          type: integer
+          example: 1
+          description: "0 = En progreso, 1 = Completado"
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve tokens JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Registrar nuevo usuario
+      description: Crea un nuevo usuario en el sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registro exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refrescar token
+      description: Genera un nuevo access token usando el refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Token refrescado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+        '401':
+          description: Refresh token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/create:
+    post:
+      tags:
+        - Users
+      summary: Crear usuario
+      description: Crea un nuevo usuario (requiere autenticación)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/getAll:
+    get:
+      tags:
+        - Users
+      summary: Obtener todos los usuarios
+      description: Lista todos los usuarios del sistema
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/update/{id}:
+    put:
+      tags:
+        - Users
+      summary: Actualizar usuario
+      description: Actualiza la información de un usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/delete/{id}:
+    delete:
+      tags:
+        - Users
+      summary: Eliminar usuario
+      description: Elimina un usuario del sistema
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+      responses:
+        '200':
+          description: Usuario eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /onboardings/create:
+    post:
+      tags:
+        - Onboardings
+      summary: Crear onboarding
+      description: Crea un nuevo programa de onboarding
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOnboardingRequest'
+      responses:
+        '200':
+          description: Onboarding creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Onboarding'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /onboardings/getAll:
+    get:
+      tags:
+        - Onboardings
+      summary: Obtener todos los onboardings
+      description: Lista todos los programas de onboarding
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de onboardings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Onboarding'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /onboardings/update/{id}:
+    put:
+      tags:
+        - Onboardings
+      summary: Actualizar onboarding
+      description: |
+        Actualiza un programa de onboarding. 
+        
+        **Notificación automática**: Todos los usuarios asignados a este onboarding recibirán un correo electrónico notificando la modificación.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOnboardingRequest'
+      responses:
+        '200':
+          description: Onboarding actualizado exitosamente (correos enviados a usuarios asignados)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Onboarding'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Onboarding no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /onboardings/delete/{id}:
+    delete:
+      tags:
+        - Onboardings
+      summary: Eliminar onboarding
+      description: |
+        Elimina un programa de onboarding del sistema.
+        
+        **Notificación automática**: Todos los usuarios asignados a este onboarding recibirán un correo electrónico notificando la eliminación.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del onboarding
+      responses:
+        '200':
+          description: Onboarding eliminado exitosamente (correos enviados a usuarios asignados)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Onboarding no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /userOnboardings/assign:
+    post:
+      tags:
+        - User Onboardings
+      summary: Asignar usuario a onboarding
+      description: |
+        Asigna un usuario a un programa de onboarding.
+        
+        **Notificación automática**: El usuario asignado recibirá un correo electrónico con los detalles del programa.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignUserOnboardingRequest'
+      responses:
+        '200':
+          description: Usuario asignado exitosamente (correo enviado al usuario)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOnboarding'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /userOnboardings/getAll:
+    get:
+      tags:
+        - User Onboardings
+      summary: Obtener asignaciones de onboarding
+      description: Lista todas las asignaciones de usuarios a onboardings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filtrar por ID de usuario (opcional)
+      responses:
+        '200':
+          description: Lista de asignaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserOnboarding'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /userOnboardings/update/{id}:
+    put:
+      tags:
+        - User Onboardings
+      summary: Actualizar asignación por ID
+      description: |
+        Actualiza el estado de una asignación de onboarding usando el ID del registro.
+        
+        **Notificación automática**: Todos los usuarios asignados al mismo onboarding recibirán un correo electrónico notificando la actualización.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del registro user_onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserOnboardingRequest'
+      responses:
+        '200':
+          description: Asignación actualizada exitosamente (correos enviados)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOnboarding'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Asignación no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /userOnboardings/update/{user_id}/{onboarding_id}:
+    put:
+      tags:
+        - User Onboardings
+      summary: Actualizar asignación por usuario y onboarding
+      description: |
+        Actualiza el estado de una asignación usando user_id y onboarding_id.
+        
+        **Notificación automática**: El usuario específico recibirá un correo electrónico notificando la actualización de su estado.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+        - name: onboarding_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserOnboardingRequest'
+      responses:
+        '200':
+          description: Asignación actualizada exitosamente (correo enviado al usuario)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOnboarding'
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Asignación no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /userOnboardings/unassign/{id}:
+    delete:
+      tags:
+        - User Onboardings
+      summary: Desasignar usuario por ID
+      description: |
+        Elimina una asignación de onboarding usando el ID del registro.
+        
+        **Notificación automática**: Todos los usuarios asignados al mismo onboarding recibirán un correo electrónico notificando la eliminación.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del registro user_onboarding
+      responses:
+        '200':
+          description: Desasignación exitosa (correos enviados)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Asignación no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /userOnboardings/unassign/{user_id}/{onboarding_id}:
+    delete:
+      tags:
+        - User Onboardings
+      summary: Desasignar usuario por usuario y onboarding
+      description: |
+        Elimina una asignación usando user_id y onboarding_id.
+        
+        **Notificación automática**: El usuario específico recibirá un correo electrónico notificando la remoción de su asignación.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+        - name: onboarding_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del onboarding
+      responses:
+        '200':
+          description: Desasignación exitosa (correo enviado al usuario)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+        '401':
+          description: No autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Asignación no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
