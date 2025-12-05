@@ -9,7 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
       TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
       TF_VAR_sendgrid_from_email: ${{ secrets.SENDGRID_FROM_EMAIL }}
 
@@ -48,7 +47,13 @@ jobs:
           cd dist
 
           # Create onboarding-app.zip (main API Lambda)
-          zip -r onboarding-app.zip . -x "*.map" "db-init-handler.js" "db-init-handler.js.map"
+          zip -r onboarding-app.zip \
+            handler.js \
+            controllers/ \
+            src/ \
+            node_modules/ \
+            package.json \
+            -x "*.map" "db-init-handler.js"
 
           # Create db-init.zip (database initialization Lambda)
           zip -r db-init.zip \

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon controllers/index.ts",
     "start": "node dist/server.js",
-    "build": "tsc",
+    "build": "tsc && cp -r database dist/",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

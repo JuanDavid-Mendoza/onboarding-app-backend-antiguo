@@ -189,6 +189,6 @@ El sistema envía notificaciones automáticas en los siguientes casos:
   "build": "Compila TypeScript a JavaScript",
   "start": "Inicia el servidor en producción",
   "test": "Ejecuta las pruebas unitarias",
-  "test:coverage": "Ejecuta pruebas con reporte de cobertura"
+  "test:coverage": "Ejecuta pruebas con reporte de cobertura."
 }
 ```

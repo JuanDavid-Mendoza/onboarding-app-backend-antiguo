@@ -11,7 +11,8 @@ locals {
     DATABASE            = "onboarding_app"
     USER                = "jmend"
     PASSWORD            = "jmend12!"
-    JWT_SECRET          = var.jwt_secret
+    JWT_SECRET          = "6322287458cc6334f675f68a8c08dac980dad700"
+    JWT_REFRESH_SECRET  = "72c9e6a894bb23bded8ab74b6d2ee42d4d028f62"
     SENDGRID_API_KEY    = var.sendgrid_api_key
     SENDGRID_FROM_EMAIL = var.sendgrid_from_email
   }
