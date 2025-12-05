@@ -11,13 +11,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*",
-    "handler.ts",
-    "db-init-handler.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "__tests__"
-  ]
+  "include": ["src/**/*", "handler.ts", "db-init-handler.ts"],
+  "exclude": ["node_modules", "__tests__"]
 }
