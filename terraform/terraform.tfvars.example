@@ -1,0 +1,25 @@
+# Terraform deployment variables
+# Copy this file to terraform.tfvars and fill in your values
+
+aws_region = "us-east-1"
+project_name = "onboarding-app"
+
+# Database configuration
+db_name = "onboarding_app"
+db_username = "admin"
+db_password = "CHANGE_ME_SECURE_PASSWORD_123!"
+db_instance_class = "db.t3.micro"
+db_allocated_storage = 20
+
+# VPC configuration
+vpc_cidr = "10.0.0.0/16"
+
+# Lambda configuration
+lambda_runtime = "nodejs22.x"
+
+# JWT Secret (IMPORTANT: Change this in production!)
+jwt_secret = "CHANGE_ME_SUPER_SECRET_JWT_KEY_FOR_PRODUCTION"
+
+# SendGrid configuration
+sendgrid_api_key = "YOUR_SENDGRID_API_KEY"
+sendgrid_from_email = "noreply@yourdomain.com"

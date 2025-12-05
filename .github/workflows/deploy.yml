@@ -1,0 +1,102 @@
+name: Deploy to AWS with Terraform
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+      TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+      TF_VAR_sendgrid_from_email: ${{ secrets.SENDGRID_FROM_EMAIL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project (TypeScript)
+        run: npm run build
+
+      - name: Install production dependencies only
+        run: npm ci --production
+
+      - name: Package Lambda functions
+        run: |
+          # Copy node_modules and package.json to dist
+          cp -r node_modules dist/
+          cp package.json dist/
+
+          cd dist
+
+          # Create onboarding-app.zip (main API Lambda)
+          zip -r onboarding-app.zip . -x "*.map" "db-init-handler.js" "db-init-handler.js.map"
+
+          # Create db-init.zip (database initialization Lambda)
+          zip -r db-init.zip \
+            db-init-handler.js \
+            database/ \
+            node_modules/ \
+            package.json \
+            -x "*.map"
+
+          cd ..
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        working-directory: terraform
+        continue-on-error: true
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        working-directory: terraform
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: terraform
+
+      - name: Output API URL
+        run: terraform output api_endpoint
+        working-directory: terraform
+
+      - name: Output RDS Endpoint
+        run: terraform output rds_endpoint
+        working-directory: terraform

@@ -1,5 +1,8 @@
 -- public.onboarding_type definition
 
+-- create database onboarding_app;
+-- use onboarding_app;
+
 -- Drop table
 -- DROP TABLE onboarding_type;
 

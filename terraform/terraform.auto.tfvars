@@ -1,0 +1,9 @@
+aws_region           = "us-east-1"
+project_name         = "bdb-aws-deployment"
+db_name              = "postgres"
+db_username          = "User1"
+db_password          = "Password1!"
+db_instance_class    = "db.t3.micro"
+db_allocated_storage = 20
+vpc_cidr             = "10.0.0.0/16"
+lambda_runtime       = "nodejs18.x"
