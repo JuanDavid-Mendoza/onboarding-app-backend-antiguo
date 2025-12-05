@@ -40,9 +40,6 @@ jobs:
 
       - name: Package Lambda functions
         run: |
-          # Clean up dist folder
-          rm -rf dist/src dist/*.zip
-
           # Copy node_modules and package.json to dist
           cp -r node_modules dist/
           cp package.json dist/
