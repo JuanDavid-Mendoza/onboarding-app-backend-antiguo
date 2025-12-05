@@ -9,7 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
       TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
       TF_VAR_sendgrid_from_email: ${{ secrets.SENDGRID_FROM_EMAIL }}
 
