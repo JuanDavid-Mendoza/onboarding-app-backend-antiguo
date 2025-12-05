@@ -40,6 +40,9 @@ jobs:
 
       - name: Package Lambda functions
         run: |
+          # Clean up dist folder
+          rm -rf dist/src dist/*.zip
+          
           # Copy node_modules and package.json to dist
           cp -r node_modules dist/
           cp package.json dist/
@@ -47,7 +50,13 @@ jobs:
           cd dist
 
           # Create onboarding-app.zip (main API Lambda)
-          zip -r onboarding-app.zip . -x "*.map" "db-init-handler.js" "db-init-handler.js.map"
+          zip -r onboarding-app.zip \
+            handler.js \
+            controllers/ \
+            src/ \
+            node_modules/ \
+            package.json \
+            -x "*.map" "db-init-handler.js"
 
           # Create db-init.zip (database initialization Lambda)
           zip -r db-init.zip \
